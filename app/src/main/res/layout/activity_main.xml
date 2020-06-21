@@ -8,43 +8,72 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <RelativeLayout
+    <LinearLayout
+        android:id="@+id/settingsLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="15" />
+        android:layout_height="0px"
+        android:layout_weight="15"
+        android:orientation="horizontal">
+    </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/tasksLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0px"
         android:layout_weight="85"
         android:orientation="vertical">
 
-        <CheckBox
-            android:id="@+id/firstTask"
+
+        <ListView
+            android:id="@+id/taskListView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="First Task" />
-
-
+            android:layout_height="match_parent"
+            android:layout_marginTop="0dp" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0px"
         android:layout_weight="13">
 
         <Button
             android:id="@+id/addTaskButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="160dp"
-            android:layout_marginRight="160dp"
             android:onClick="addTaskPopUp"
             android:text="+"
             android:textSize="36sp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/taskButton"
+            android:layout_width="122dp"
+            android:layout_height="60dp"
+            android:onClick="addDefaultTask"
+            android:text="Test Add Default Task"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.055"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.547" />
+
+        <Button
+            android:id="@+id/clearButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="clearTasks"
+            android:text="Clear List"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.916"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/addTaskButton"
+            app:layout_constraintVertical_bias="0.407" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
