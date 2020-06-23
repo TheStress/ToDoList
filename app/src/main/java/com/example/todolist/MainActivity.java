@@ -11,9 +11,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -27,9 +29,14 @@ public class MainActivity extends AppCompatActivity {
     //Intial Variable List
     Button addTaskButton;
 
+    //Test
+    int test = 0;
+
+    //Task list declarations
     ListView listView;
     int taskAmount;
     ArrayList<Task> taskList;
+    TaskAdapter taskAdapter;
 
     //Creating new preferences and the editor
     SharedPreferences taskListPref;
@@ -39,62 +46,78 @@ public class MainActivity extends AppCompatActivity {
 
         boolean completed = false;
         boolean recurring;
-        int position;
         String name = "";
         CheckBox checkBox;
 
         public Task() {
             name = "New Task";
-            position = 0;
             recurring = false;
-            checkBox = createCheckBoxFromTask(this);
         }
 
-        public Task(String initalName, int initalPosition, boolean initalRecurring, boolean initalCompleted) {
+        public Task(String initalName, boolean initalRecurring, boolean initalCompleted) {
             name = initalName;
-            position = initalPosition;
             recurring = initalRecurring;
             completed = initalCompleted;
-            checkBox = createCheckBoxFromTask(this);
         }
     }
 
     public Task createTaskFromPreferences(SharedPreferences sharedPreferences, int id) {
 
         String name = sharedPreferences.getString(id + "name", "New Task");
-        int position = sharedPreferences.getInt(id + "position", id);
         boolean recurring = sharedPreferences.getBoolean(id + "recurring", false);
         boolean completed = sharedPreferences.getBoolean(id + "completed", false);
 
-        return new Task(name, position, recurring, completed);
-    }
-
-    public CheckBox createCheckBoxFromTask(Task task) {
-        CheckBox checkBox = new CheckBox(this);
-        checkBox.setText(task.name);
-        checkBox.setChecked(task.completed);
-        return checkBox;
+        return new Task(name, recurring, completed);
     }
 
     public void saveNewTaskList(ArrayList<Task> taskList) {
+        //Clearing out anything before hand
+        editor.clear();
 
+        //Saving everything
         for (int i = 0; i < taskList.size(); i++) {
             editor.putString(i + "name", taskList.get(i).name);
-            editor.putInt(i + "position", taskList.get(i).position);
             editor.putBoolean(i + "recurring", taskList.get(i).recurring);
             editor.putBoolean(i + "completed", taskList.get(i).completed);
         }
         editor.putInt("taskAmount", taskList.size());
         editor.commit();
 
-        TaskAdapter taskAdapter = new TaskAdapter(this, taskList);
+        taskAdapter = new TaskAdapter(this, taskList);
         listView.setAdapter(taskAdapter);
     }
 
-    public void addDefaultTask(View view) {
-        Task task = new Task("other name", 0, false, false);
-        taskList.add(task);
+    public void createNewTask(Task task) {
+        boolean foundCompletedTask = false;
+        if(taskList.size() == 0)  {
+            taskList.add(task);
+        }
+        else {
+            for (int i = 0; i < taskList.size(); i++) {
+
+                //Sorting list if found something
+                if (taskList.get(i).completed == true) {
+                    taskList.add(task);
+                    //Rearranging list for completed task
+                    for (int j = taskList.size() - 1; j > i; j--) {
+                        taskList.set(j, taskList.get(j - 1));
+                    }
+                    taskList.set(i, task);
+                    foundCompletedTask = true;
+                    break;
+                }
+            }
+            if(foundCompletedTask != true) {
+                taskList.add(task);
+            }
+        }
         saveNewTaskList(taskList);
+    }
+
+    public void addDefaultTask(View view) {
+        Task task = new Task(String.valueOf(test), false, false);
+        test++;
+        createNewTask(task);
     }
 
     public void clearTasks(View view) {
@@ -108,18 +131,69 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
             // Get the data item for this position
-            Task task = getItem(position);
+            final Task task = getItem(position);
+
             // Check if an existing view is being reused, otherwise inflate the view
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_view_template, parent, false);
             }
             // Lookup view for data population
             CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
+
             // Populate the data into the template view using the data object
             checkBox.setText(task.name);
             checkBox.setChecked(task.completed);
+
+            if(checkBox.isChecked()) {
+                checkBox.setAlpha(0.25f);
+            }
+            else {
+                checkBox.setAlpha(1f);
+            }
+
+            //Setting onclick
+            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if(isChecked) {
+                        //Setting checked
+                        task.completed = true;
+
+                        //Rearranging list for completed task
+                        taskList.add(task);
+                        for(int i = position; i < taskList.size() - 1; i++) {
+                            taskList.set(i, taskList.get(i + 1));
+                        }
+                        taskList.remove(taskList.size() - 1);
+                    }
+                    else {
+                        //Check if completed
+                        task.completed = false;
+
+                        for(int i = 0; i < taskList.size(); i++) {
+                            //If you find itself at the top then just break
+                            if (taskList.get(i).equals(task)) {
+                                break;
+                            }
+
+                            //Sorting list if found something
+                            if(taskList.get(i).completed == true) {
+                                //Rearranging list for completed task
+                                for(int j = position; j > i; j--) {
+                                    taskList.set(j, taskList.get(j - 1));
+                                }
+                                taskList.set(i, task);
+                                break;
+                            }
+                        }
+
+                    }
+                    saveNewTaskList(taskList);
+                }
+            });
+
             // Return the completed view to render on screen
             return convertView;
         }
@@ -141,11 +215,12 @@ public class MainActivity extends AppCompatActivity {
         taskAmount = taskListPref.getInt("taskAmount", 0);
         taskList = new ArrayList<>();
 
+        //Getting the previous saved tasks
         for(int i = 0; i < taskAmount; i++) {
             Task task = createTaskFromPreferences(taskListPref, i);
             taskList.add(task);
         }
-        TaskAdapter taskAdapter = new TaskAdapter(this, taskList);
+        taskAdapter = new TaskAdapter(this, taskList);
         listView.setAdapter(taskAdapter);
 
 
