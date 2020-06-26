@@ -20,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
+import java.lang.reflect.Array;
+import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         boolean completed = false;
         boolean recurring;
-        String name = "";
+        String name;
         CheckBox checkBox;
 
         public Task() {
@@ -58,7 +60,15 @@ public class MainActivity extends AppCompatActivity {
             name = initalName;
             recurring = initalRecurring;
             completed = initalCompleted;
+            checkBox = checkBoxFromTask(this);
         }
+    }
+
+    public CheckBox checkBoxFromTask(Task task) {
+        CheckBox checkBox = new CheckBox(this);
+        checkBox.setChecked(task.completed);
+        checkBox.setText(task.name);
+        return checkBox;
     }
 
     public Task createTaskFromPreferences(SharedPreferences sharedPreferences, int id) {
@@ -83,8 +93,12 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("taskAmount", taskList.size());
         editor.commit();
 
+        /*
         taskAdapter = new TaskAdapter(this, taskList);
         listView.setAdapter(taskAdapter);
+
+         */
+        taskAdapter.notifyDataSetChanged();
     }
 
     public void createNewTask(Task task) {
@@ -96,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < taskList.size(); i++) {
 
                 //Sorting list if found something
-                if (taskList.get(i).completed == true) {
+                if (taskList.get(i).completed) {
                     taskList.add(task);
                     //Rearranging list for completed task
                     for (int j = taskList.size() - 1; j > i; j--) {
@@ -107,7 +121,8 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
             }
-            if(foundCompletedTask != true) {
+
+            if(!foundCompletedTask) {
                 taskList.add(task);
             }
         }
@@ -126,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class TaskAdapter extends ArrayAdapter<Task> {
-        public TaskAdapter(Context context, ArrayList<Task> users) {
-            super(context, 0, users);
+        public TaskAdapter(Context context, ArrayList<Task> data) {
+            super(context, 0, data);
         }
 
         @Override
@@ -140,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_view_template, parent, false);
             }
             // Lookup view for data population
-            CheckBox checkBox = (CheckBox) convertView.findViewById(R.id.checkBox);
+            CheckBox checkBox = convertView.findViewById(R.id.checkBox);
 
             // Populate the data into the template view using the data object
             checkBox.setText(task.name);
@@ -153,58 +168,20 @@ public class MainActivity extends AppCompatActivity {
                 checkBox.setAlpha(1f);
             }
 
-            //Setting onclick
-            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if(isChecked) {
-                        //Setting checked
-                        task.completed = true;
-
-                        //Rearranging list for completed task
-                        taskList.add(task);
-                        for(int i = position; i < taskList.size() - 1; i++) {
-                            taskList.set(i, taskList.get(i + 1));
-                        }
-                        taskList.remove(taskList.size() - 1);
-                    }
-                    else {
-                        //Check if completed
-                        task.completed = false;
-
-                        for(int i = 0; i < taskList.size(); i++) {
-                            //If you find itself at the top then just break
-                            if (taskList.get(i).equals(task)) {
-                                break;
-                            }
-
-                            //Sorting list if found something
-                            if(taskList.get(i).completed == true) {
-                                //Rearranging list for completed task
-                                for(int j = position; j > i; j--) {
-                                    taskList.set(j, taskList.get(j - 1));
-                                }
-                                taskList.set(i, task);
-                                break;
-                            }
-                        }
-
-                    }
-                    saveNewTaskList(taskList);
-                }
-            });
-
             // Return the completed view to render on screen
             return convertView;
         }
     }
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Layout
+        //List View
         listView = findViewById(R.id.taskListView);
 
         //Saved preferences
@@ -223,11 +200,48 @@ public class MainActivity extends AppCompatActivity {
         taskAdapter = new TaskAdapter(this, taskList);
         listView.setAdapter(taskAdapter);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Task task = taskList.get(position);
+
+                task.completed = !task.completed;
+                if(task.completed) {
+                    //Rearranging list for completed task
+                    taskList.add(task);
+                    for(int i = position; i < taskList.size() - 1; i++) {
+                        taskList.set(i, taskList.get(i + 1));
+                    }
+                    taskList.remove(taskList.size() - 1);
+                }
+                else {
+                    for(int i = 0; i < taskList.size(); i++) {
+                        //If you find itself at the top then just break
+                        if (taskList.get(i).equals(task)) {
+                            break;
+                        }
+
+                        //Sorting list if found something
+                        if(taskList.get(i).completed == true) {
+                            //Rearranging list for completed task
+                            for(int j = position; j > i; j--) {
+                                taskList.set(j, taskList.get(j - 1));
+                            }
+                            taskList.set(i, task);
+                            break;
+                        }
+                    }
+
+                }
+                saveNewTaskList(taskList);
+            }
+        });
+
 
         //Pop up box
-        LinearLayout apple = (LinearLayout ) findViewById(R.id.thebigthinglayout);
+        LinearLayout apple = findViewById(R.id.thebigthinglayout);
         apple.setBackgroundColor(Color.WHITE);
-        addTaskButton = (Button)findViewById(R.id.addTaskButton);
+        addTaskButton = findViewById(R.id.addTaskButton);
 
 
     }
@@ -235,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         if(v == addTaskButton){
             startActivity(new Intent(MainActivity.this,Pop.class));
 
-            LinearLayout owo = (LinearLayout ) findViewById(R.id.thebigthinglayout);
+            LinearLayout owo = findViewById(R.id.thebigthinglayout);
             owo.setBackgroundColor(Color.GRAY);
         }
 
