@@ -1,12 +1,13 @@
 package com.example.todolist;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,16 +16,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 
-import java.lang.reflect.Array;
-import java.nio.file.StandardWatchEventKinds;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,6 +28,11 @@ public class MainActivity extends AppCompatActivity {
 
     //Test
     int test = 0;
+
+    //Select Button
+    boolean selecting = false;
+    Button selectButton;
+    Button trashButton;
 
     //Task list declarations
     ListView listView;
@@ -48,8 +48,8 @@ public class MainActivity extends AppCompatActivity {
 
         boolean completed = false;
         boolean recurring;
+        boolean selected = false;
         String name;
-        CheckBox checkBox;
 
         public Task() {
             name = "New Task";
@@ -60,15 +60,7 @@ public class MainActivity extends AppCompatActivity {
             name = initalName;
             recurring = initalRecurring;
             completed = initalCompleted;
-            checkBox = checkBoxFromTask(this);
         }
-    }
-
-    public CheckBox checkBoxFromTask(Task task) {
-        CheckBox checkBox = new CheckBox(this);
-        checkBox.setChecked(task.completed);
-        checkBox.setText(task.name);
-        return checkBox;
     }
 
     public Task createTaskFromPreferences(SharedPreferences sharedPreferences, int id) {
@@ -92,12 +84,6 @@ public class MainActivity extends AppCompatActivity {
         }
         editor.putInt("taskAmount", taskList.size());
         editor.commit();
-
-        /*
-        taskAdapter = new TaskAdapter(this, taskList);
-        listView.setAdapter(taskAdapter);
-
-         */
         taskAdapter.notifyDataSetChanged();
     }
 
@@ -135,8 +121,37 @@ public class MainActivity extends AppCompatActivity {
         createNewTask(task);
     }
 
-    public void clearTasks(View view) {
-        taskList.clear();
+    public void selectToggle(View view) {
+        if (selecting) {
+            selecting = false;
+            selectButton.setText("Select");
+            trashButton.setEnabled(false);
+            trashButton.setAlpha(0);
+
+            //Clearing the selects from list
+            for(int i = 0; i < taskList.size(); i++) {
+                taskList.get(i).selected = false;
+            }
+        }
+        else {
+            selecting = true;
+            selectButton.setText("Cancel");
+            trashButton.setEnabled(true);
+            trashButton.setAlpha(1);
+        }
+        taskAdapter.notifyDataSetChanged();
+    }
+
+    public void deleteSelectedTasks(View view) {
+        //Deleting tasks
+        int sizeCheck = taskList.size();
+        for(int i = 0; i < sizeCheck; i++) {
+            if(taskList.get(i).selected) {
+               taskList.remove(i);
+               i--;
+               sizeCheck = taskList.size();
+            }
+        }
         saveNewTaskList(taskList);
     }
 
@@ -159,9 +174,21 @@ public class MainActivity extends AppCompatActivity {
 
             // Populate the data into the template view using the data object
             checkBox.setText(task.name);
-            checkBox.setChecked(task.completed);
 
-            if(checkBox.isChecked()) {
+            //Checkbox Style and checked state
+            Drawable drawable;
+            if(selecting) {
+                checkBox.setChecked(task.selected);
+                drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.select_checkbox_image);
+            }
+            else {
+                checkBox.setChecked(task.completed);
+                drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.regular_checkbox_image);
+            }
+            checkBox.setButtonDrawable(drawable);
+
+            //Transparency
+            if(task.completed) {
                 checkBox.setAlpha(0.25f);
             }
             else {
@@ -180,6 +207,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Select Button
+        selectButton = findViewById(R.id.selectButton);
+        trashButton = findViewById(R.id.trashButton);
+        trashButton.setEnabled(false);
+        trashButton.setAlpha(0);
 
         //List View
         listView = findViewById(R.id.taskListView);
@@ -203,40 +236,47 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Getting task
                 Task task = taskList.get(position);
+                if (selecting) {
+                    //Changing checked satus
+                    task.selected = !task.selected;
+                    taskAdapter.notifyDataSetChanged();
+                } else {
+                    //Changing checked status
+                    task.completed = !task.completed;
 
-                task.completed = !task.completed;
-                if(task.completed) {
-                    //Rearranging list for completed task
-                    taskList.add(task);
-                    for(int i = position; i < taskList.size() - 1; i++) {
-                        taskList.set(i, taskList.get(i + 1));
-                    }
-                    taskList.remove(taskList.size() - 1);
-                }
-                else {
-                    for(int i = 0; i < taskList.size(); i++) {
-                        //If you find itself at the top then just break
-                        if (taskList.get(i).equals(task)) {
-                            break;
+                    //Rearranging checkboxes completed/uncompleted
+                    if (task.completed) {
+                        //Rearranging list for completed task
+                        taskList.add(task);
+                        for (int i = position; i < taskList.size() - 1; i++) {
+                            taskList.set(i, taskList.get(i + 1));
                         }
-
-                        //Sorting list if found something
-                        if(taskList.get(i).completed == true) {
-                            //Rearranging list for completed task
-                            for(int j = position; j > i; j--) {
-                                taskList.set(j, taskList.get(j - 1));
+                        taskList.remove(taskList.size() - 1);
+                    } else {
+                        for (int i = 0; i < taskList.size(); i++) {
+                            //If you find itself at the top then just break
+                            if (taskList.get(i).equals(task)) {
+                                break;
                             }
-                            taskList.set(i, task);
-                            break;
-                        }
-                    }
 
+                            //Sorting list if found something
+                            if (taskList.get(i).completed == true) {
+                                //Rearranging list for completed task
+                                for (int j = position; j > i; j--) {
+                                    taskList.set(j, taskList.get(j - 1));
+                                }
+                                taskList.set(i, task);
+                                break;
+                            }
+                        }
+
+                    }
+                    saveNewTaskList(taskList);
                 }
-                saveNewTaskList(taskList);
             }
         });
-
 
         //Pop up box
         LinearLayout apple = findViewById(R.id.thebigthinglayout);
