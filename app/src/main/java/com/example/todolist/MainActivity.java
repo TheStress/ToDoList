@@ -19,7 +19,12 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Test
     int test = 0;
+    String currentTime;
 
     //Select Button
     boolean selecting = false;
@@ -40,9 +46,13 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<Task> taskList;
     TaskAdapter taskAdapter;
 
-    //Creating new preferences and the editor
+    //Creating preferences and editor for task list
     SharedPreferences taskListPref;
-    SharedPreferences.Editor editor;
+    SharedPreferences.Editor taskListEditor;
+
+    //Creating preferences for date
+    SharedPreferences datePref;
+    SharedPreferences.Editor dateEditor;
 
     public class Task{
 
@@ -74,16 +84,16 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveNewTaskList(ArrayList<Task> taskList) {
         //Clearing out anything before hand
-        editor.clear();
+        taskListEditor.clear();
 
         //Saving everything
         for (int i = 0; i < taskList.size(); i++) {
-            editor.putString(i + "name", taskList.get(i).name);
-            editor.putBoolean(i + "recurring", taskList.get(i).recurring);
-            editor.putBoolean(i + "completed", taskList.get(i).completed);
+            taskListEditor.putString(i + "name", taskList.get(i).name);
+            taskListEditor.putBoolean(i + "recurring", taskList.get(i).recurring);
+            taskListEditor.putBoolean(i + "completed", taskList.get(i).completed);
         }
-        editor.putInt("taskAmount", taskList.size());
-        editor.commit();
+        taskListEditor.putInt("taskAmount", taskList.size());
+        taskListEditor.commit();
         taskAdapter.notifyDataSetChanged();
     }
 
@@ -217,9 +227,31 @@ public class MainActivity extends AppCompatActivity {
         //List View
         listView = findViewById(R.id.taskListView);
 
-        //Saved preferences
+        //Date preferences
+        datePref = getSharedPreferences("DATE_PREF", Context.MODE_PRIVATE);
+        dateEditor = datePref.edit();
+
+        //Comparing previous login date with current to clear completed tasks
+        Calendar currentCalendar = Calendar.getInstance();
+
+        int lastDaySaved = datePref.getInt("lastDayLogin", 0);
+        int lastYearSaved = datePref.getInt("lastYearLogin", 0);
+
+        int today = currentCalendar.get(currentCalendar.DAY_OF_YEAR);
+        int thisYear = currentCalendar.get(currentCalendar.YEAR);
+
+        boolean clearCompleted = false;
+        if(today > lastDaySaved || thisYear > lastYearSaved) {
+            clearCompleted = true;
+        }
+
+        dateEditor.putInt("lastDayLogin", today);
+        dateEditor.putInt("lastYearLogin", thisYear);
+        dateEditor.commit();
+
+        //Saved preferences for task list
         taskListPref = getSharedPreferences("TASK_LIST", Context.MODE_PRIVATE);
-        editor = taskListPref.edit();
+        taskListEditor = taskListPref.edit();
 
         //Getting preferences and creating task list
         taskAmount = taskListPref.getInt("taskAmount", 0);
@@ -228,11 +260,18 @@ public class MainActivity extends AppCompatActivity {
         //Getting the previous saved tasks
         for(int i = 0; i < taskAmount; i++) {
             Task task = createTaskFromPreferences(taskListPref, i);
+            if(clearCompleted && task.completed) {
+                break;
+            }
             taskList.add(task);
         }
+
+        //Setting adapter to list view
         taskAdapter = new TaskAdapter(this, taskList);
         listView.setAdapter(taskAdapter);
+        saveNewTaskList(taskList);
 
+        //Setting onclick for listview
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -282,8 +321,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout apple = findViewById(R.id.thebigthinglayout);
         apple.setBackgroundColor(Color.WHITE);
         addTaskButton = findViewById(R.id.addTaskButton);
-
-
     }
     public void addTaskPopUp(View v){
         if(v == addTaskButton){
