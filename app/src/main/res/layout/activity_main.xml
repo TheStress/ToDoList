@@ -88,19 +88,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/taskButton"
-            android:layout_width="122dp"
-            android:layout_height="60dp"
-            android:onClick="addDefaultTask"
-            android:text="Test Add Default Task"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.055"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.547" />
-
-        <Button
             android:id="@+id/trashButton"
             android:layout_width="52dp"
             android:layout_height="54dp"

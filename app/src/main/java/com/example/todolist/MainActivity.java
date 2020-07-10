@@ -1,5 +1,6 @@
 package com.example.todolist;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -18,6 +19,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
 
     //Intial Variable List
     Button addTaskButton;
+    Boolean reccuring;
+    String taskName;
 
     //Test
     int test = 0;
@@ -125,12 +129,6 @@ public class MainActivity extends AppCompatActivity {
         saveNewTaskList(taskList);
     }
 
-    public void addDefaultTask(View view) {
-        Task task = new Task(String.valueOf(test), false, false);
-        test++;
-        createNewTask(task);
-    }
-
     public void selectToggle(View view) {
         if (selecting) {
             selecting = false;
@@ -204,11 +202,17 @@ public class MainActivity extends AppCompatActivity {
             else {
                 checkBox.setAlpha(1f);
             }
+            if(task.recurring==true){
+                checkBox.setAlpha(0.5F);
+            }else{
+                checkBox.setAlpha(1F);
+            }
 
             // Return the completed view to render on screen
             return convertView;
         }
     }
+
 
 
 
@@ -260,8 +264,13 @@ public class MainActivity extends AppCompatActivity {
         //Getting the previous saved tasks
         for(int i = 0; i < taskAmount; i++) {
             Task task = createTaskFromPreferences(taskListPref, i);
-            if(clearCompleted && task.completed) {
-                break;
+            if(clearCompleted&& task.completed==true) {
+                if (task.recurring != true) {
+                    break;
+                }
+                if (task.recurring == true) {
+                    task.completed = false;
+                }
             }
             taskList.add(task);
         }
@@ -322,14 +331,34 @@ public class MainActivity extends AppCompatActivity {
         apple.setBackgroundColor(Color.WHITE);
         addTaskButton = findViewById(R.id.addTaskButton);
     }
+    //on click method for the pop up
     public void addTaskPopUp(View v){
         if(v == addTaskButton){
-            startActivity(new Intent(MainActivity.this,Pop.class));
-
+            //create a new intent of the popup class
+            Intent popUp =new Intent(MainActivity.this,Pop.class);
+            startActivityForResult(popUp,1);
+            //in addition set the background color to grey
             LinearLayout owo = findViewById(R.id.thebigthinglayout);
             owo.setBackgroundColor(Color.GRAY);
         }
 
     }
 
+    //on the end of the activity do this
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        //change background back to white
+        LinearLayout owo = findViewById(R.id.thebigthinglayout);
+        owo.setBackgroundColor(Color.WHITE);
+        super.onActivityResult(requestCode, resultCode, data);
+        //if pop up activity make a new task with given elements from pop up activity
+        if(requestCode == 1){
+            if(resultCode == RESULT_OK){
+                String in = data.getStringExtra("GetTheText");
+                Boolean inBool = data.getBooleanExtra("GetTheRec",false);
+                Task task =new Task(in, inBool,false);
+                createNewTask(task);
+            }
+        }
+    }
 }
