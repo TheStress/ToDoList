@@ -3,7 +3,10 @@ package com.example.todolist;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.SharedElementCallback;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,14 +22,13 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,14 +37,23 @@ public class MainActivity extends AppCompatActivity {
     Boolean reccuring;
     String taskName;
 
-    //Test
-    int test = 0;
-    String currentTime;
-
     //Select Button
     boolean selecting = false;
     Button selectButton;
     Button trashButton;
+
+    ///Tag List
+    RecyclerView tagView;
+    RecyclerView.Adapter tagAdapter;
+    RecyclerView.LayoutManager tagManager;
+    int tagAmount;
+    ArrayList<String> tagList;
+
+    int test;
+
+    //Saved prefs for tag list
+    SharedPreferences tagListPref;
+    SharedPreferences.Editor tagListEditor;
 
     //Task list declarations
     ListView listView;
@@ -58,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences datePref;
     SharedPreferences.Editor dateEditor;
 
+    //Task List functions
     public class Task{
 
         boolean completed = false;
@@ -129,10 +141,38 @@ public class MainActivity extends AppCompatActivity {
         saveNewTaskList(taskList);
     }
 
+    public void deleteSelectedTasks(View view) {
+        //Deleting tasks
+        int sizeCheck = taskList.size();
+        for(int i = 0; i < sizeCheck; i++) {
+            if(taskList.get(i).selected) {
+               taskList.remove(i);
+               i--;
+               sizeCheck = taskList.size();
+            }
+        }
+        saveNewTaskList(taskList);
+    }
+
+    //Tag List functions
+    public void saveNewTagList(ArrayList<String> tagList) {
+        //Clearing previous
+        tagListEditor.clear();
+
+        //Saving everything
+        for (int i = 0; i < tagList.size(); i++) {
+            tagListEditor.putString(i + "name", tagList.get(i));
+        }
+        tagListEditor.putInt("tagAmount", tagList.size());
+        tagListEditor.commit();
+        tagAdapter.notifyDataSetChanged();
+    }
+
+    //Misc functions
     public void selectToggle(View view) {
         if (selecting) {
             selecting = false;
-            selectButton.setText("Select");
+            selectButton.setText("Edit");
             trashButton.setEnabled(false);
             trashButton.setAlpha(0);
 
@@ -148,21 +188,10 @@ public class MainActivity extends AppCompatActivity {
             trashButton.setAlpha(1);
         }
         taskAdapter.notifyDataSetChanged();
+        tagAdapter.notifyDataSetChanged();
     }
 
-    public void deleteSelectedTasks(View view) {
-        //Deleting tasks
-        int sizeCheck = taskList.size();
-        for(int i = 0; i < sizeCheck; i++) {
-            if(taskList.get(i).selected) {
-               taskList.remove(i);
-               i--;
-               sizeCheck = taskList.size();
-            }
-        }
-        saveNewTaskList(taskList);
-    }
-
+    //Adapters
     public class TaskAdapter extends ArrayAdapter<Task> {
         public TaskAdapter(Context context, ArrayList<Task> data) {
             super(context, 0, data);
@@ -202,20 +231,86 @@ public class MainActivity extends AppCompatActivity {
             else {
                 checkBox.setAlpha(1f);
             }
-            if(task.recurring==true){
-                checkBox.setAlpha(0.5F);
-            }else{
-                checkBox.setAlpha(1F);
-            }
 
             // Return the completed view to render on screen
             return convertView;
         }
     }
 
+    public class TagAdapter extends RecyclerView.Adapter<TagAdapter.MyViewHolder> {
+        // Provide a reference to the views for each data item
+        // Complex data items may need more than one view per item, and
+        // you provide access to all the views for a data item in a view holder
+        public class MyViewHolder extends RecyclerView.ViewHolder {
+            // each data item is just a string in this case
+            public Button button;
+            public Button xButton;
+            public MyViewHolder(View v) {
+                super(v);
+                button = (Button) v.findViewById(R.id.button);
+                xButton = (Button) v.findViewById(R.id.xButton);
+            }
+        }
 
+        //Data set
+        ArrayList<String> dataSet;
 
+        // Provide a suitable constructor (depends on the kind of dataset)
+        public TagAdapter(ArrayList<String> myDataset) {
+            dataSet = myDataset;
+        }
 
+        // Create new views (invoked by the layout manager)
+        @Override
+        public TagAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+                                                         int viewType) {
+            // create a new view
+            View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.tag_view_template, parent, false);
+            MyViewHolder vh = new MyViewHolder(v);
+            return vh;
+        }
+
+        // Replace the contents of a view (invoked by the layout manager)
+        @Override
+        public void onBindViewHolder(TagAdapter.MyViewHolder holder, final int position) {
+            // - get element from your dataset at this position
+            // - replace the contents of the view with that element
+
+            //setting text of button
+            holder.button.setText(dataSet.get(position));
+
+            //Delete tag button
+            if (selecting) {
+                holder.xButton.setEnabled(true);
+                holder.xButton.setAlpha(1);
+            }
+            else {
+                holder.xButton.setEnabled(false);
+                holder.xButton.setAlpha(0);
+            }
+
+            holder.xButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dataSet.remove(position);
+                    saveNewTagList(dataSet);
+                }
+            });
+        }
+
+        // Return the size of your dataset (invoked by the layout manager)
+        @Override
+        public int getItemCount() {
+            return dataSet.size();
+        }
+    }
+
+    public void createDefaultTag(View view) {
+        tagList.add(Integer.toString(test));
+        test++;
+        saveNewTagList(tagList);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -227,9 +322,6 @@ public class MainActivity extends AppCompatActivity {
         trashButton = findViewById(R.id.trashButton);
         trashButton.setEnabled(false);
         trashButton.setAlpha(0);
-
-        //List View
-        listView = findViewById(R.id.taskListView);
 
         //Date preferences
         datePref = getSharedPreferences("DATE_PREF", Context.MODE_PRIVATE);
@@ -253,6 +345,33 @@ public class MainActivity extends AppCompatActivity {
         dateEditor.putInt("lastYearLogin", thisYear);
         dateEditor.commit();
 
+        //Save Pref for tag
+        tagListPref = getSharedPreferences("TAG_LIST", Context.MODE_PRIVATE);
+        tagListEditor = tagListPref.edit();
+
+        //Getting saved Tags
+        tagAmount = tagListPref.getInt("tagAmount", 0);
+        tagList = new ArrayList<>();
+
+        for(int i = 0; i < tagAmount; i++) {
+            String foundTag = tagListPref.getString(i + "name", "");
+            tagList.add(foundTag);
+        }
+
+        //Tag list
+        tagView = findViewById(R.id.tagView);
+
+        tagManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        tagView.setLayoutManager(tagManager);
+
+        tagView.setHasFixedSize(true);
+
+        tagAdapter = new TagAdapter(tagList);
+        tagView.setAdapter(tagAdapter);
+
+        //List View
+        listView = findViewById(R.id.taskListView);
+
         //Saved preferences for task list
         taskListPref = getSharedPreferences("TASK_LIST", Context.MODE_PRIVATE);
         taskListEditor = taskListPref.edit();
@@ -264,12 +383,13 @@ public class MainActivity extends AppCompatActivity {
         //Getting the previous saved tasks
         for(int i = 0; i < taskAmount; i++) {
             Task task = createTaskFromPreferences(taskListPref, i);
-            if(clearCompleted&& task.completed==true) {
-                if (task.recurring != true) {
-                    break;
-                }
-                if (task.recurring == true) {
+            //Removing the completed tasks
+            if(clearCompleted && task.completed==true) {
+                if (task.recurring) {
                     task.completed = false;
+                }
+                else {
+                    continue;
                 }
             }
             taskList.add(task);
@@ -280,14 +400,14 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(taskAdapter);
         saveNewTaskList(taskList);
 
-        //Setting onclick for listview
+        //Setting onclick for list view
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Getting task
                 Task task = taskList.get(position);
                 if (selecting) {
-                    //Changing checked satus
+                    //Changing checked status
                     task.selected = !task.selected;
                     taskAdapter.notifyDataSetChanged();
                 } else {
@@ -331,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
         apple.setBackgroundColor(Color.WHITE);
         addTaskButton = findViewById(R.id.addTaskButton);
     }
+
     //on click method for the pop up
     public void addTaskPopUp(View v){
         if(v == addTaskButton){
