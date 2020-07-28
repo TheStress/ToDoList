@@ -42,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     Button selectButton;
     Button trashButton;
 
+    //information button
+    Button infButton;
+
     ///Tag List
     RecyclerView tagView;
     RecyclerView.Adapter tagAdapter;
@@ -323,6 +326,9 @@ public class MainActivity extends AppCompatActivity {
         trashButton.setEnabled(false);
         trashButton.setAlpha(0);
 
+        //information button
+        infButton = (Button) findViewById(R.id.infoButton);
+
         //Date preferences
         datePref = getSharedPreferences("DATE_PREF", Context.MODE_PRIVATE);
         dateEditor = datePref.edit();
@@ -458,19 +464,19 @@ public class MainActivity extends AppCompatActivity {
             //create a new intent of the popup class
             Intent popUp =new Intent(MainActivity.this,Pop.class);
             startActivityForResult(popUp,1);
-            //in addition set the background color to grey
-            LinearLayout owo = findViewById(R.id.thebigthinglayout);
-            owo.setBackgroundColor(Color.GRAY);
+
         }
+        if(v == infButton){
+            startActivity(new Intent(MainActivity.this,infoPop.class));
+        }
+
 
     }
 
     //on the end of the activity do this
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        //change background back to white
-        LinearLayout owo = findViewById(R.id.thebigthinglayout);
-        owo.setBackgroundColor(Color.WHITE);
+
         super.onActivityResult(requestCode, resultCode, data);
         //if pop up activity make a new task with given elements from pop up activity
         if(requestCode == 1){

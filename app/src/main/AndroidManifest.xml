@@ -16,8 +16,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Pop"
-            android:theme="@style/popUptheme"></activity>
+        <activity android:name=".Pop"></activity>
+
+        <activity android:name=".infoPop"></activity>
     </application>
 
 </manifest>
