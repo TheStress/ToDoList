@@ -65,6 +65,7 @@
             android:id="@+id/textView3"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:padding="2dp"
             android:layout_weight="1"
             android:text="Tags:"
             android:textSize="18sp" />
@@ -92,12 +93,11 @@
         android:layout_weight="85"
         android:orientation="vertical">
 
-
-        <ListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/taskListView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="10dp" />
+            android:layout_height="match_parent" />
+
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -108,7 +108,7 @@
         <Button
             android:id="@+id/addTaskButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:onClick="addTaskPopUp"
             android:text="+"
             android:textSize="36sp"
@@ -119,16 +119,30 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
-            android:id="@+id/trashButton"
-            android:layout_width="52dp"
-            android:layout_height="54dp"
-            android:background="@drawable/ic_baseline_delete_24"
+            android:id="@+id/deleteMultiButton"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
             android:onClick="deleteSelectedTasks"
+            android:text="Delete"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.927"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <Button
+            android:id="@+id/editMultiTagsButton"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:text="Edit Tags"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
