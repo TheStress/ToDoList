@@ -21,8 +21,11 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -84,11 +87,11 @@ public class MainActivity extends AppCompatActivity {
             tags = new ArrayList<String>();
         }
 
-        public Task(String initalName, boolean initalRecurring, boolean initalCompleted) {
+        public Task(String initalName, boolean initalRecurring, boolean initalCompleted, ArrayList<String> initalTags) {
             name = initalName;
             recurring = initalRecurring;
             completed = initalCompleted;
-            tags = new ArrayList<String>();
+            tags = initalTags;
         }
     }
 
@@ -98,18 +101,35 @@ public class MainActivity extends AppCompatActivity {
         boolean recurring = sharedPreferences.getBoolean(id + "recurring", false);
         boolean completed = sharedPreferences.getBoolean(id + "completed", false);
 
-        return new Task(name, recurring, completed);
+        //Getting the set from saved prefs
+        Set tagSet = new HashSet<String>();
+        tagSet = sharedPreferences.getStringSet(id + "tags", tagSet);
+
+        //Converting set to array to array list
+        ArrayList<String> tags = new ArrayList<>();
+        tags.addAll(tagSet);
+
+        return new Task(name, recurring, completed, tags);
     }
 
     public void saveNewTaskList(ArrayList<Task> taskList) {
         //Clearing out anything before hand
         taskListEditor.clear();
 
-        //Saving everything
+        //Creating set for tags
+        Set savingTags = new HashSet<String>();
+
+        //Itterating through the list of tasks
         for (int i = 0; i < taskList.size(); i++) {
             taskListEditor.putString(i + "name", taskList.get(i).name);
             taskListEditor.putBoolean(i + "recurring", taskList.get(i).recurring);
             taskListEditor.putBoolean(i + "completed", taskList.get(i).completed);
+
+            //Converting Array List to set to save
+            savingTags.clear();
+            savingTags.addAll(taskList.get(i).tags);
+            //Saving the converted tags
+            taskListEditor.putStringSet(i + "tags", savingTags);
         }
         taskListEditor.putInt("taskAmount", taskList.size());
         taskListEditor.commit();
@@ -320,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            holder.checkboxTags.setText("Tags: ");
+            holder.checkboxTags.setText("Tags: " + tagsList);
 
             //Checkbox Style and checked state
             Drawable drawable;
@@ -343,6 +363,7 @@ public class MainActivity extends AppCompatActivity {
                 drawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.regular_checkbox_image);
             }
             holder.checkBox.setButtonDrawable(drawable);
+
 
             //Transparency
             if(task.completed) {
@@ -369,18 +390,19 @@ public class MainActivity extends AppCompatActivity {
         // you provide access to all the views for a data item in a view holder
         public class MyViewHolder extends RecyclerView.ViewHolder {
             // each data item is just a string in this case
-            public Button button;
+            public CheckBox checkBox;
             public Button xButton;
 
             public MyViewHolder(View v) {
                 super(v);
-                button = (Button) v.findViewById(R.id.button);
+                checkBox = (CheckBox) v.findViewById(R.id.checkbox);
                 xButton = (Button) v.findViewById(R.id.xButton);
 
                 //Delete tag Button
                 xButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        String name = dataSet.get(getAdapterPosition());
                         dataSet.remove(getAdapterPosition());
                         saveNewTagList(dataSet);
                     }
@@ -411,12 +433,16 @@ public class MainActivity extends AppCompatActivity {
             // - replace the contents of the view with that element
 
             //setting text of button
-            holder.button.setText(dataSet.get(position));
+            holder.checkBox.setText(dataSet.get(position));
 
             //Delete tag button visuals
+            String name = dataSet.get(position);
             if (selecting) {
-                holder.xButton.setEnabled(true);
-                holder.xButton.setAlpha(1);
+                //Checking if tags are the default ones
+                if (name == "No Tag" && name == "Recurring") {
+                    holder.xButton.setEnabled(true);
+                    holder.xButton.setAlpha(1);
+                }
             }
             else {
                 holder.xButton.setEnabled(false);
@@ -485,8 +511,12 @@ public class MainActivity extends AppCompatActivity {
         //Getting saved Tags
         tagAmount = tagListPref.getInt("tagAmount", 0);
         tagList = new ArrayList<>();
-        /*ADD DEFAULT TAGAS OR JUST MAKE RECURRING WITHOUT TAGS*/
-        tagList.add("");
+
+        //Default tags
+        tagList.add("No Tag");
+        tagList.add("Recurring");
+
+        //Getting from saved prefs
         for(int i = 2; i < tagAmount; i++) {
             String foundTag = tagListPref.getString(i + "name", "");
             tagList.add(foundTag);
@@ -565,7 +595,16 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == RESULT_OK){
                 String in = data.getStringExtra("GetTheText");
                 Boolean inBool = data.getBooleanExtra("GetTheRec",false);
-                Task task =new Task(in, inBool,false);
+
+                /*SOME TEST THINGS/ NEEDS TO IMPLEMENT ADDING NEW TAGS*/
+                ArrayList<String> assignedTags = new ArrayList<String>();
+                assignedTags.clear();
+                if (inBool) {
+                    assignedTags.add("Recurring");
+                }
+
+                Task task = new Task(in, inBool, false, assignedTags);
+
                 createNewTask(task);
             }
         }
