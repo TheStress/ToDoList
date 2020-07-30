@@ -44,14 +44,15 @@ public class MainActivity extends AppCompatActivity {
     //information button
     Button infButton;
 
+    //Add tag button
+    Button addTaggButton;
+
     ///Tag List
     RecyclerView tagView;
     RecyclerView.Adapter tagAdapter;
     RecyclerView.LayoutManager tagManager;
     int tagAmount;
     ArrayList<String> tagList;
-
-    int test;
 
     //Saved prefs for tag list
     SharedPreferences tagListPref;
@@ -439,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
             String name = dataSet.get(position);
             if (selecting) {
                 //Checking if tags are the default ones
-                if (name == "No Tag" && name == "Recurring") {
+                if (position != 0 && position!= 1) {
                     holder.xButton.setEnabled(true);
                     holder.xButton.setAlpha(1);
                 }
@@ -457,16 +458,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void createDefaultTag(View view) {
-        tagList.add(Integer.toString(test));
-        test++;
-        saveNewTagList(tagList);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Add tag button
+        addTaggButton = findViewById(R.id.newTagButton);
 
         //Select Button
         selectButton = findViewById(R.id.selectButton);
@@ -570,7 +569,7 @@ public class MainActivity extends AppCompatActivity {
         addTaskButton = findViewById(R.id.addTaskButton);
     }
 
-    //on click method for the pop up
+    //on click method for the pop up windows
     public void addTaskPopUp(View v){
         if(v == addTaskButton){
             //create a new intent of the popup class
@@ -580,6 +579,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if(v == infButton){
             startActivity(new Intent(MainActivity.this,infoPop.class));
+        }
+        if(v==addTaggButton){
+            Intent popUp =new Intent(MainActivity.this,tagPop.class);
+            startActivityForResult(popUp,2);
+
         }
 
 
@@ -607,6 +611,14 @@ public class MainActivity extends AppCompatActivity {
 
                 createNewTask(task);
             }
+        }
+        if(requestCode==2){
+            if(resultCode == RESULT_OK){
+                String tagName = data.getStringExtra("GetTheTextTag");
+                addingNewTag(tagName);
+
+            }
+
         }
     }
 }

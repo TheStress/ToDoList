@@ -19,6 +19,7 @@
         <activity android:name=".Pop"></activity>
 
         <activity android:name=".infoPop"></activity>
+        <activity android:name=".tagPop"></activity>
     </application>
 
 </manifest>
