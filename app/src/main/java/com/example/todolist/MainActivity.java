@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.Adapter tagAdapter;
     RecyclerView.LayoutManager tagManager;
     int tagAmount;
-    ArrayList<String> tagList;
+    ArrayList<Tag> tagList;
 
     //Saved prefs for tag list
     SharedPreferences tagListPref;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.LayoutManager taskManager;
     int taskAmount;
     ArrayList<Task> taskList;
+    ArrayList<Task> taskListDisplay;
 
     //Creating preferences and editor for task list
     SharedPreferences taskListPref;
@@ -134,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
         }
         taskListEditor.putInt("taskAmount", taskList.size());
         taskListEditor.commit();
+        updateDisplayTaskList();
         taskAdapter.notifyDataSetChanged();
     }
 
@@ -179,22 +182,99 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Tag List functions
-    public void saveNewTagList(ArrayList<String> tagList) {
+    public class Tag {
+        String name;
+        boolean checked;
+
+        public Tag() {
+            name = "New Tag";
+            checked = false;
+        }
+
+        public Tag(String initialName, boolean initialChecked) {
+            name = initialName;
+            checked = initialChecked;
+        }
+    }
+
+    public void saveNewTagList(ArrayList<Tag> tagList) {
         //Clearing previous
         tagListEditor.clear();
 
         //Saving everything
         for (int i = 0; i < tagList.size(); i++) {
-            tagListEditor.putString(i + "name", tagList.get(i));
+            tagListEditor.putString(i + "name", tagList.get(i).name);
         }
         tagListEditor.putInt("tagAmount", tagList.size());
         tagListEditor.commit();
         tagAdapter.notifyDataSetChanged();
     }
 
-    public void addingNewTag(String tagName) {
+    public void addingNewTag(Tag tagName) {
         tagList.add(tagName);
         saveNewTagList(tagList);
+    }
+
+    //Updates the displaying task list based on selected tags
+    public void updateDisplayTaskList() {
+        taskListDisplay.clear();
+
+        //Itterating through tag list checking if any are checked off
+        boolean foundChecked = false;
+        for(int i = 0; i < tagList.size(); i++) {
+            Tag tag = tagList.get(i);
+            if (tag.checked) {
+                foundChecked = true;
+            }
+        }
+
+        //If nothing is checked just have the original task list display
+        if (!foundChecked) {
+            taskListDisplay.addAll(taskList);
+            taskAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        //Itterating through the task list
+        for(int i = 0; i < taskList.size(); i++) {
+            Task task = taskList.get(i);
+
+            //Itterating through tag list checking if they are selected
+            for(int j = 0; j < tagList.size(); j++) {
+                Tag tag = tagList.get(j);
+                if (tag.checked) {
+                    //Itterating through the task's tags to see it they match
+                    for (int g = 0; g < task.tags.size(); g++) {
+                        String taskTagName = task.tags.get(g);
+                        if (tag.name.equals(taskTagName)) {
+                            taskListDisplay.add(task);
+                        }
+                    }
+                }
+            }
+        }
+
+        taskAdapter.notifyDataSetChanged();
+    }
+
+    //Deleting tag and those off of tasks
+    public void deleteTag(Tag tag){
+        //Itterating through task list
+        for(int i = 0; i < taskList.size(); i++) {
+            Task task = taskList.get(i);
+
+            //Itterating through the tags of tasks
+            int sizeCheck = task.tags.size();
+            for(int j = 0; j < sizeCheck; j++) {
+                //Checking and removing properly
+                if(tag.name.equals(task.tags.get(j))) {
+                    task.tags.remove(j);
+                    j--;
+                    sizeCheck = task.tags.size();
+                }
+            }
+        }
+        saveNewTaskList(taskList);
     }
 
     //Misc functions
@@ -384,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class TagAdapter extends RecyclerView.Adapter<TagAdapter.MyViewHolder> {
         //Data set
-        ArrayList<String> dataSet;
+        ArrayList<Tag> dataSet;
 
         // Provide a reference to the views for each data item
         // Complex data items may need more than one view per item, and
@@ -399,11 +479,21 @@ public class MainActivity extends AppCompatActivity {
                 checkBox = (CheckBox) v.findViewById(R.id.checkbox);
                 xButton = (Button) v.findViewById(R.id.xButton);
 
+                checkBox.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int position = getAdapterPosition();
+                        Tag tag = dataSet.get(position);
+                        tag.checked = !tag.checked;
+                        updateDisplayTaskList();
+                    }
+                });
+
                 //Delete tag Button
                 xButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String name = dataSet.get(getAdapterPosition());
+                        deleteTag(dataSet.get(getAdapterPosition()));
                         dataSet.remove(getAdapterPosition());
                         saveNewTagList(dataSet);
                     }
@@ -412,7 +502,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Provide a suitable constructor (depends on the kind of dataset)
-        public TagAdapter(ArrayList<String> myDataset) {
+        public TagAdapter(ArrayList<Tag> myDataset) {
             dataSet = myDataset;
         }
 
@@ -433,21 +523,25 @@ public class MainActivity extends AppCompatActivity {
             // - get element from your dataset at this position
             // - replace the contents of the view with that element
 
+            //Getting the data set
+            Tag tag = dataSet.get(position);
+
             //setting text of button
-            holder.checkBox.setText(dataSet.get(position));
+            holder.checkBox.setText(tag.name);
+            holder.checkBox.setChecked(tag.checked);
+
+            //Disabling the delete
+            holder.xButton.setEnabled(false);
+            holder.xButton.setAlpha(0);
 
             //Delete tag button visuals
-            String name = dataSet.get(position);
+            String name = dataSet.get(position).name;
             if (selecting) {
                 //Checking if tags are the default ones
-                if (position != 0 && position!= 1) {
+                //if (position != 0 && position!= 1) {
                     holder.xButton.setEnabled(true);
                     holder.xButton.setAlpha(1);
-                }
-            }
-            else {
-                holder.xButton.setEnabled(false);
-                holder.xButton.setAlpha(0);
+                //}
             }
         }
 
@@ -457,7 +551,6 @@ public class MainActivity extends AppCompatActivity {
             return dataSet.size();
         }
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -512,13 +605,13 @@ public class MainActivity extends AppCompatActivity {
         tagList = new ArrayList<>();
 
         //Default tags
-        tagList.add("No Tag");
-        tagList.add("Recurring");
+        tagList.add(new Tag("No Tag", false));
+        tagList.add(new Tag("Recurring", false));
 
         //Getting from saved prefs
         for(int i = 2; i < tagAmount; i++) {
-            String foundTag = tagListPref.getString(i + "name", "");
-            tagList.add(foundTag);
+            String foundName = tagListPref.getString(i + "name", "");
+            tagList.add(new Tag(foundName, false));
         }
 
         //Tag list
@@ -537,6 +630,7 @@ public class MainActivity extends AppCompatActivity {
         //Getting preferences and creating task list
         taskAmount = taskListPref.getInt("taskAmount", 0);
         taskList = new ArrayList<>();
+        taskListDisplay = new ArrayList<>();
 
         //Getting the previous saved tasks
         for(int i = 0; i < taskAmount; i++) {
@@ -552,6 +646,7 @@ public class MainActivity extends AppCompatActivity {
             }
             taskList.add(task);
         }
+        taskListDisplay.addAll(taskList);
 
         //List View
         taskView = findViewById(R.id.taskListView);
@@ -559,7 +654,7 @@ public class MainActivity extends AppCompatActivity {
         taskManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         taskView.setLayoutManager(taskManager);
 
-        taskAdapter = new TaskAdapter(taskList);
+        taskAdapter = new TaskAdapter(taskListDisplay);
         taskView.setAdapter(taskAdapter);
         taskAdapter.notifyDataSetChanged();
 
@@ -614,8 +709,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if(requestCode==2){
             if(resultCode == RESULT_OK){
+
                 String tagName = data.getStringExtra("GetTheTextTag");
-                addingNewTag(tagName);
+                addingNewTag(new Tag(tagName, false));
 
             }
 
