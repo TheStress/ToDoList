@@ -18,24 +18,21 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 public class editTagPop extends Activity {
     Button closeEdit;
-/*    RecyclerView ListView;
+    RecyclerView ListView;
     RecyclerView.Adapter listViewAdapter;
     RecyclerView.LayoutManager listViewManager;
-
-    Intent intent = getIntent();
-    ArrayList inList = intent.getStringArrayListExtra("InputArray");*/
     boolean[] endList;
-
-
-
+    ArrayList<String> inList;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.edittaskspopup);
 
-        //endList = new boolean[inList.size()];
+        Intent intent = getIntent();
+        inList = intent.getStringArrayListExtra("InputArray");
+
+        endList = new boolean[inList.size()];
 
         closeEdit = findViewById(R.id.closeEditTag);
 
@@ -45,21 +42,22 @@ public class editTagPop extends Activity {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
         getWindow().setLayout((int) (width*.8),(int) (height*.5));
-/*
+
         //List View
         ListView = findViewById(R.id.listview);
 
         listViewManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         ListView.setLayoutManager(listViewManager);
 
-        listViewAdapter = new MainActivity.TaskAdapter(inList);
+        listViewAdapter = new TagEditAdapter(inList);
         ListView.setAdapter(listViewAdapter);
-        listViewAdapter.notifyDataSetChanged();*/
+        listViewAdapter.notifyDataSetChanged();
 
     }
-/*    public class TagAdapter extends RecyclerView.Adapter<MainActivity.TagAdapter.MyViewHolder> {
+
+    public class TagEditAdapter extends RecyclerView.Adapter<TagEditAdapter.MyViewHolder> {
         //Data set
-        ArrayList<MainActivity.Tag> dataSet;
+        ArrayList<String> dataSet;
 
         // Provide a reference to the views for each data item
         // Complex data items may need more than one view per item, and
@@ -67,90 +65,46 @@ public class editTagPop extends Activity {
         public class MyViewHolder extends RecyclerView.ViewHolder {
             // each data item is just a string in this case
             public CheckBox checkBox;
-            public Button xButton;
 
             public MyViewHolder(View v) {
                 super(v);
-                checkBox = (CheckBox) v.findViewById(R.id.checkbox);
-                xButton = (Button) v.findViewById(R.id.xButton);
+                checkBox = (CheckBox) v.findViewById(R.id.editTagCheckbox);
 
                 checkBox.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         int position = getAdapterPosition();
-
-                        //Unselecting other tags when clicking on "no tag" tag
-                        if (position == 0) {
-                            for (int i = 1; i < dataSet.size(); i++) {
-                                dataSet.get(i).checked = false;
-                            }
-                        }
-                        else {
-                            dataSet.get(0).checked = false;
-                        }
-
-                        //Changing tag checked and updating display list
-                        MainActivity.Tag tag = dataSet.get(position);
-                        tag.checked = !tag.checked;
-                        tagAdapter.notifyDataSetChanged();
-                        updateDisplayTaskList();
-                    }
-                });
-
-                //Delete tag Button
-                xButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        deleteTag(dataSet.get(getAdapterPosition()));
-                        dataSet.remove(getAdapterPosition());
-                        saveNewTagList(dataSet);
+                        endList[position] = !endList[position];
                     }
                 });
             }
         }
 
         // Provide a suitable constructor (depends on the kind of dataset)
-        public TagAdapter(ArrayList<MainActivity.Tag> myDataset) {
+        public TagEditAdapter(ArrayList<String> myDataset) {
             dataSet = myDataset;
         }
 
         // Create new views (invoked by the layout manager)
         @Override
-        public MainActivity.TagAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
+        public TagEditAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
                                                                        int viewType) {
             // create a new view
             View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.tag_view_template, parent, false);
-            MainActivity.TagAdapter.MyViewHolder vh = new MainActivity.TagAdapter.MyViewHolder(v);
+                    .inflate(R.layout.edit_tag_view_template, parent, false);
+            TagEditAdapter.MyViewHolder vh = new TagEditAdapter.MyViewHolder(v);
             return vh;
         }
 
         // Replace the contents of a view (invoked by the layout manager)
         @Override
-        public void onBindViewHolder(MainActivity.TagAdapter.MyViewHolder holder, final int position) {
+        public void onBindViewHolder(TagEditAdapter.MyViewHolder holder, final int position) {
             // - get element from your dataset at this position
             // - replace the contents of the view with that element
 
-            //Getting the data set
-            MainActivity.Tag tag = dataSet.get(position);
-
             //setting text of button
-            holder.checkBox.setText(tag.name);
-            holder.checkBox.setChecked(tag.checked);
-
-            //Disabling the delete
-            holder.xButton.setEnabled(false);
-            holder.xButton.setAlpha(0);
-
-            //Delete tag button visuals
-            String name = dataSet.get(position).name;
-            if (selecting) {
-                //Checking if tags are the default ones
-                if (position != 0 && position!= 1) {
-                    holder.xButton.setEnabled(true);
-                    holder.xButton.setAlpha(1);
-                }
-            }
+            holder.checkBox.setText(dataSet.get(position));
+            holder.checkBox.setChecked(endList[position]);
         }
 
         // Return the size of your dataset (invoked by the layout manager)
@@ -158,7 +112,7 @@ public class editTagPop extends Activity {
         public int getItemCount() {
             return dataSet.size();
         }
-    }*/
+    }
 
     public void editTagOnClick(View v){
         if(v==closeEdit){

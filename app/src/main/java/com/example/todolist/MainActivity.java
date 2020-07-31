@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     //Select Button
     boolean selecting = false;
     Button selectButton;
-    Button editMenuButton;
     Button deleteMultiButton;
     Button editMultiTagsButton;
 
@@ -272,6 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Deleting tag and those off of tasks
     public void deleteTag(Tag tag){
+
         //Itterating through task list
         for(int i = 0; i < taskList.size(); i++) {
             Task task = taskList.get(i);
@@ -713,7 +713,7 @@ public class MainActivity extends AppCompatActivity {
         if(v==editTaggButton){
             Intent popUp = (new Intent(MainActivity.this,editTagPop.class));
             ArrayList<String> inputArray = new ArrayList<String>();
-            for(int i =0; i<tagList.size();i++){
+            for(int i =0; i < tagList.size();i++){
                 inputArray.add(tagList.get(i).name);
             }
 
@@ -756,6 +756,25 @@ public class MainActivity extends AppCompatActivity {
         }
         if(requestCode==3){
             boolean[] booleanList = data.getBooleanArrayExtra("GetTheEditList");
+
+            //New list of tags
+            ArrayList<String> newTagList = new ArrayList<>();
+
+            //Getting the selected tags in a new list
+            for(int i = 0; i < tagList.size(); i++) {
+                if(booleanList[i]) {
+                    newTagList.add(tagList.get(i).name);
+                }
+            }
+
+            //Finding the selected tasks for new list
+            for (int i = 0; i < taskList.size(); i++) {
+                if (taskList.get(i).selected) {
+                    taskList.get(i).tags = newTagList;
+                    taskList.get(i).selected = false;
+                }
+            }
+            saveNewTaskList(taskList);
         }
     }
 }

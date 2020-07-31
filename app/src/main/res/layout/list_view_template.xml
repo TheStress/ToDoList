@@ -22,11 +22,13 @@
         android:id="@+id/checkboxName"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
+        android:gravity="left"
         android:text="Name"
+        android:textAlignment="gravity"
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox"
-        app:layout_constraintEnd_toEndOf="@+id/checkBox"
-        app:layout_constraintHorizontal_bias="0.106"
         app:layout_constraintStart_toStartOf="@+id/checkBox"
         app:layout_constraintTop_toTopOf="@+id/checkBox"
         app:layout_constraintVertical_bias="0.129" />
@@ -35,24 +37,26 @@
         android:id="@+id/checkboxTags"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginStart="40dp"
+        android:layout_marginLeft="40dp"
+        android:gravity="left"
         android:text="Tags:"
+        android:textAlignment="gravity"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox"
-        app:layout_constraintEnd_toEndOf="@+id/checkBox"
-        app:layout_constraintHorizontal_bias="0.097"
         app:layout_constraintStart_toStartOf="@+id/checkBox"
         app:layout_constraintTop_toTopOf="@+id/checkBox"
-        app:layout_constraintVertical_bias="0.82" />
+        app:layout_constraintVertical_bias="0.818" />
 
     <Button
         android:id="@+id/checkboxEditButton"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
         android:background="@drawable/ic_baseline_edit_24"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox"
         app:layout_constraintEnd_toEndOf="@+id/checkBox"
-        app:layout_constraintHorizontal_bias="0.957"
+        app:layout_constraintHorizontal_bias="0.95"
         app:layout_constraintStart_toStartOf="@+id/checkBox"
         app:layout_constraintTop_toTopOf="@+id/checkBox"
-        app:layout_constraintVertical_bias="0.482" />
+        app:layout_constraintVertical_bias="0.5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
