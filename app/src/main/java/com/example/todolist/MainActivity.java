@@ -32,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     //Intial Variable List
     Button addTaskButton;
-    Boolean reccuring;
-    String taskName;
 
     //Select Button
     boolean selecting = false;
@@ -49,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
     //edit tag button
     Button editTaggButton;
-    Button editTaggButton2;
 
     ///Tag List
     RecyclerView tagView;
@@ -82,20 +79,17 @@ public class MainActivity extends AppCompatActivity {
     public class Task{
 
         boolean completed = false;
-        boolean recurring;
         boolean selected = false;
         String name;
         ArrayList<String> tags;
 
         public Task() {
             name = "New Task";
-            recurring = false;
             tags = new ArrayList<String>();
         }
 
-        public Task(String initalName, boolean initalRecurring, boolean initalCompleted, ArrayList<String> initalTags) {
+        public Task(String initalName, boolean initalCompleted, ArrayList<String> initalTags) {
             name = initalName;
-            recurring = initalRecurring;
             completed = initalCompleted;
             tags = initalTags;
         }
@@ -104,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
     public Task createTaskFromPreferences(SharedPreferences sharedPreferences, int id) {
 
         String name = sharedPreferences.getString(id + "name", "New Task");
-        boolean recurring = sharedPreferences.getBoolean(id + "recurring", false);
         boolean completed = sharedPreferences.getBoolean(id + "completed", false);
 
         //Getting the set from saved prefs
@@ -115,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> tags = new ArrayList<>();
         tags.addAll(tagSet);
 
-        return new Task(name, recurring, completed, tags);
+        return new Task(name, completed, tags);
     }
 
     public void saveNewTaskList(ArrayList<Task> taskList) {
@@ -128,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
         //Itterating through the list of tasks
         for (int i = 0; i < taskList.size(); i++) {
             taskListEditor.putString(i + "name", taskList.get(i).name);
-            taskListEditor.putBoolean(i + "recurring", taskList.get(i).recurring);
             taskListEditor.putBoolean(i + "completed", taskList.get(i).completed);
 
             //Converting Array List to set to save
@@ -344,6 +336,34 @@ public class MainActivity extends AppCompatActivity {
                 checkboxTags = (TextView) v.findViewById(R.id.checkboxTags);
                 checkBox = (CheckBox) v.findViewById(R.id.checkBox);
                 constraintLayout = (ConstraintLayout) v.findViewById(R.id.taskConstraintLayout);
+
+                editButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        //Getting task setup
+                        int position = getAdapterPosition();
+                        Task task = taskList.get(position);
+                        task.selected = true;
+
+                        //Unselecting other tasks
+                        for (int i = 0; i < taskList.size(); i++) {
+                            if (!taskList.get(i).equals(task)) {
+                                taskList.get(i).selected = false;
+                            }
+                        }
+
+                        //create a new intent of the popup class
+                        Intent popUp = new Intent(MainActivity.this,Pop.class);
+                        ArrayList<String> inputArray = new ArrayList<String>();
+                        for(int i =0; i < tagList.size();i++){
+                            inputArray.add(tagList.get(i).name);
+                        }
+                        popUp.putExtra("ButtonName","Done");
+                        popUp.putExtra("TaskName",task.name);
+                        popUp.putExtra("InputArray",inputArray);
+                        startActivityForResult(popUp,4);
+                    }
+                });
 
                 checkBox.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -669,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
             Task task = createTaskFromPreferences(taskListPref, i);
             //Removing the completed tasks
             if(clearCompleted && task.completed==true) {
-                if (task.recurring) {
+                if (task.tags.contains("Recurring")) {
                     task.completed = false;
                 }
                 else {
@@ -701,7 +721,7 @@ public class MainActivity extends AppCompatActivity {
     public void addTaskPopUp(View v){
         if(v == addTaskButton){
             //create a new intent of the popup class
-            Intent popUp =new Intent(MainActivity.this,Pop.class);
+            Intent popUp = new Intent(MainActivity.this,Pop.class);
             ArrayList<String> inputArray = new ArrayList<String>();
             for(int i =0; i < tagList.size();i++){
                 inputArray.add(tagList.get(i).name);
@@ -710,7 +730,6 @@ public class MainActivity extends AppCompatActivity {
             popUp.putExtra("TaskName","");
             popUp.putExtra("InputArray",inputArray);
             startActivityForResult(popUp,1);
-
         }
         if(v == infButton){
             startActivity(new Intent(MainActivity.this,infoPop.class));
@@ -746,7 +765,6 @@ public class MainActivity extends AppCompatActivity {
 
                 //New list of tags
                 ArrayList<String> newTagList = new ArrayList<>();
-                boolean reccur;
 
                 //Getting the selected tags in a new list
                 for(int i = 0; i < tagList.size(); i++) {
@@ -755,16 +773,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-
-                /*SOME TEST THINGS/ NEEDS TO IMPLEMENT ADDING NEW TAGS*/
-                if (booleanList[1]==true) {
-                    reccur = true;
-
-                }else{
-                    reccur = false;
-                }
-
-                Task task = new Task(in, reccur, false, newTagList);
+                Task task = new Task(in, false, newTagList);
 
                 createNewTask(task);
             }
@@ -796,6 +805,32 @@ public class MainActivity extends AppCompatActivity {
                 if (taskList.get(i).selected) {
                     taskList.get(i).tags = newTagList;
                     taskList.get(i).selected = false;
+                }
+            }
+            saveNewTaskList(taskList);
+        }
+
+        if(requestCode == 4) {
+            String in = data.getStringExtra("GetTheText");
+            boolean[] booleanList = data.getBooleanArrayExtra("BoolList");
+
+            //New list of tags
+            ArrayList<String> newTagList = new ArrayList<>();
+
+            //Getting the selected tags in a new list
+            for(int i = 0; i < tagList.size(); i++) {
+                if(booleanList[i]) {
+                    newTagList.add(tagList.get(i).name);
+                }
+            }
+
+            //Editing task
+            for(int i = 0; i < taskList.size(); i++) {
+                Task task = taskList.get(i);
+                if(task.selected) {
+                    task.name = in;
+                    task.tags = newTagList;
+                    task.selected = false;
                 }
             }
             saveNewTaskList(taskList);
