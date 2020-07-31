@@ -243,11 +243,21 @@ public class MainActivity extends AppCompatActivity {
             for(int j = 0; j < tagList.size(); j++) {
                 Tag tag = tagList.get(j);
                 if (tag.checked) {
-                    //Itterating through the task's tags to see it they match
-                    for (int g = 0; g < task.tags.size(); g++) {
-                        String taskTagName = task.tags.get(g);
-                        if (tag.name.equals(taskTagName)) {
+
+                    //If the user selected "No Tag"
+                    if (j == 0) {
+                        if (task.tags.size() == 0) {
                             taskListDisplay.add(task);
+                            break;
+                        }
+                    }
+                    else {
+                        //Itterating through the task's tags to see it they match
+                        for (int g = 0; g < task.tags.size(); g++) {
+                            String taskTagName = task.tags.get(g);
+                            if (tag.name.equals(taskTagName)) {
+                                taskListDisplay.add(task);
+                            }
                         }
                     }
                 }
@@ -483,8 +493,21 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         int position = getAdapterPosition();
+
+                        //Unselecting other tags when clicking on "no tag" tag
+                        if (position == 0) {
+                            for (int i = 1; i < dataSet.size(); i++) {
+                                dataSet.get(i).checked = false;
+                            }
+                        }
+                        else {
+                            dataSet.get(0).checked = false;
+                        }
+
+                        //Changing tag checked and updating display list
                         Tag tag = dataSet.get(position);
                         tag.checked = !tag.checked;
+                        tagAdapter.notifyDataSetChanged();
                         updateDisplayTaskList();
                     }
                 });
@@ -538,10 +561,10 @@ public class MainActivity extends AppCompatActivity {
             String name = dataSet.get(position).name;
             if (selecting) {
                 //Checking if tags are the default ones
-                //if (position != 0 && position!= 1) {
+                if (position != 0 && position!= 1) {
                     holder.xButton.setEnabled(true);
                     holder.xButton.setAlpha(1);
-                //}
+                }
             }
         }
 
