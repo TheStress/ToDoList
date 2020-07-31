@@ -48,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     //Add tag button
     Button addTaggButton;
 
+    //edit tag button
+    Button editTaggButton;
+
     ///Tag List
     RecyclerView tagView;
     RecyclerView.Adapter tagAdapter;
@@ -586,6 +589,9 @@ public class MainActivity extends AppCompatActivity {
         //Select Button
         selectButton = findViewById(R.id.selectButton);
 
+        //edit tag button
+        editTaggButton = findViewById(R.id.editMultiTagsButton);
+
         deleteMultiButton = findViewById(R.id.deleteMultiButton);
         editMultiTagsButton = findViewById(R.id.editMultiTagsButton);
 
@@ -681,6 +687,7 @@ public class MainActivity extends AppCompatActivity {
         taskView.setAdapter(taskAdapter);
         taskAdapter.notifyDataSetChanged();
 
+
         //Pop up box
         LinearLayout apple = findViewById(R.id.thebigthinglayout);
         apple.setBackgroundColor(Color.WHITE);
@@ -703,8 +710,16 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(popUp,2);
 
         }
+        if(v==editTaggButton){
+            Intent popUp = (new Intent(MainActivity.this,editTagPop.class));
+            ArrayList<String> inputArray = new ArrayList<String>();
+            for(int i =0; i<tagList.size();i++){
+                inputArray.add(tagList.get(i).name);
+            }
 
-
+            popUp.putExtra("InputArray",inputArray);
+            startActivityForResult(popUp,3);
+        }
     }
 
     //on the end of the activity do this
@@ -738,6 +753,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+        }
+        if(requestCode==3){
+            boolean[] booleanList = data.getBooleanArrayExtra("GetTheEditList");
         }
     }
 }

@@ -135,6 +135,7 @@
             android:id="@+id/editMultiTagsButton"
             android:layout_width="100dp"
             android:layout_height="50dp"
+            android:onClick="addTaskPopUp"
             android:text="Edit Tags"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
