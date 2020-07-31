@@ -2,15 +2,11 @@ package com.example.todolist;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Switch;
-import android.widget.Toast;
 
 
 import androidx.annotation.Nullable;
@@ -22,10 +18,13 @@ public class Pop extends Activity {
 
     Button closeButton;
     Button addTask;
+    Button openEdit;
+    EditText a;
+    ArrayList<String> lists;
+    boolean[] booleanList;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        //setting title of popup
-        setTitle("Create New Task");
+
 
         //making Popup window into a width x height dimension
         super.onCreate(savedInstanceState);
@@ -38,7 +37,22 @@ public class Pop extends Activity {
 
         //Setting the Buttons on the xml to button variables
         closeButton = findViewById(R.id.closeButton);
-        addTask = findViewById(R.id.addbutton);
+        addTask =findViewById(R.id.addbutton);
+
+
+        //setting title of popup
+        setTitle("Create New Task");
+        Intent intent = getIntent();
+        lists = intent.getStringArrayListExtra("InputArray");
+        String buttonName = intent.getStringExtra("ButtonName");
+        String taskName = intent.getStringExtra("TaskName");
+
+        a =  findViewById(R.id.inputString);
+
+        a.setText(taskName);
+        addTask.setText(buttonName);
+
+
     }
 
     //onclick methods
@@ -49,14 +63,28 @@ public class Pop extends Activity {
         }
         //if addTask then push two values string name and reccuring back to the main activity and end the activity
         if(v==addTask){
-            EditText a = findViewById(R.id.input);
+            EditText a = findViewById(R.id.inputString);
             String input= a.getText().toString();
-            boolean recur= ( (Switch) findViewById(R.id.reccurringswitch) ).isChecked();
+
             Intent main = getIntent();
             main.putExtra("GetTheText", input);
-            main.putExtra("GetTheRec", recur);
+            main.putExtra("BoolList",booleanList);
             setResult(RESULT_OK, main);
             finish();
+        }
+        if(v==openEdit){
+            Intent popUp = (new Intent(Pop.this,editTagPop.class));
+            popUp.putExtra("InputArray",lists);
+            startActivityForResult(popUp,3);
+        }
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode==3){
+            booleanList = data.getBooleanArrayExtra("GetTheEditList");
         }
     }
 }

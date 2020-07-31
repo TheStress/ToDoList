@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     //edit tag button
     Button editTaggButton;
+    Button editTaggButton2;
 
     ///Tag List
     RecyclerView tagView;
@@ -586,11 +587,13 @@ public class MainActivity extends AppCompatActivity {
         //Add tag button
         addTaggButton = findViewById(R.id.newTagButton);
 
+
         //Select Button
         selectButton = findViewById(R.id.selectButton);
 
         //edit tag button
         editTaggButton = findViewById(R.id.editMultiTagsButton);
+
 
         deleteMultiButton = findViewById(R.id.deleteMultiButton);
         editMultiTagsButton = findViewById(R.id.editMultiTagsButton);
@@ -699,6 +702,13 @@ public class MainActivity extends AppCompatActivity {
         if(v == addTaskButton){
             //create a new intent of the popup class
             Intent popUp =new Intent(MainActivity.this,Pop.class);
+            ArrayList<String> inputArray = new ArrayList<String>();
+            for(int i =0; i < tagList.size();i++){
+                inputArray.add(tagList.get(i).name);
+            }
+            popUp.putExtra("ButtonName","Add Task");
+            popUp.putExtra("TaskName","");
+            popUp.putExtra("InputArray",inputArray);
             startActivityForResult(popUp,1);
 
         }
@@ -731,16 +741,30 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode == 1){
             if(resultCode == RESULT_OK){
                 String in = data.getStringExtra("GetTheText");
-                Boolean inBool = data.getBooleanExtra("GetTheRec",false);
+                boolean[] booleanList = data.getBooleanArrayExtra("BoolList");
+                //need to fix this
 
-                /*SOME TEST THINGS/ NEEDS TO IMPLEMENT ADDING NEW TAGS*/
-                ArrayList<String> assignedTags = new ArrayList<String>();
-                assignedTags.clear();
-                if (inBool) {
-                    assignedTags.add("Recurring");
+                //New list of tags
+                ArrayList<String> newTagList = new ArrayList<>();
+                boolean reccur;
+
+                //Getting the selected tags in a new list
+                for(int i = 0; i < tagList.size(); i++) {
+                    if(booleanList[i]) {
+                        newTagList.add(tagList.get(i).name);
+                    }
                 }
 
-                Task task = new Task(in, inBool, false, assignedTags);
+
+                /*SOME TEST THINGS/ NEEDS TO IMPLEMENT ADDING NEW TAGS*/
+                if (booleanList[1]==true) {
+                    reccur = true;
+
+                }else{
+                    reccur = false;
+                }
+
+                Task task = new Task(in, reccur, false, newTagList);
 
                 createNewTask(task);
             }

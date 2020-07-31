@@ -34,7 +34,7 @@ public class editTagPop extends Activity {
 
         endList = new boolean[inList.size()];
 
-        closeEdit = findViewById(R.id.closeEditTag);
+        closeEdit = findViewById(R.id.closeEditTags);
 
         //Changing display height and width
         DisplayMetrics dm = new DisplayMetrics();
