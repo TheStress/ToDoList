@@ -8,7 +8,7 @@
     <CheckBox
         android:id="@+id/checkBox"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:padding="5dp"
         android:textSize="40sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -24,10 +24,9 @@
         android:layout_height="match_parent"
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
-        android:gravity="left"
         android:text="Name"
-        android:textAlignment="gravity"
         android:textSize="24sp"
+        android:maxWidth="285dp"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox"
         app:layout_constraintStart_toStartOf="@+id/checkBox"
         app:layout_constraintTop_toTopOf="@+id/checkBox"
@@ -39,13 +38,12 @@
         android:layout_height="match_parent"
         android:layout_marginStart="40dp"
         android:layout_marginLeft="40dp"
-        android:gravity="left"
         android:text="Tags:"
-        android:textAlignment="gravity"
+        android:maxWidth="285dp"
         app:layout_constraintBottom_toBottomOf="@+id/checkBox"
         app:layout_constraintStart_toStartOf="@+id/checkBox"
-        app:layout_constraintTop_toTopOf="@+id/checkBox"
-        app:layout_constraintVertical_bias="0.818" />
+        app:layout_constraintTop_toBottomOf="@+id/checkboxName"
+        app:layout_constraintVertical_bias="0.0" />
 
     <Button
         android:id="@+id/checkboxEditButton"

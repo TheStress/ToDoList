@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         public Task() {
             name = "New Task";
-            tags = new ArrayList<String>();
+            tags = new ArrayList<>();
         }
 
         public Task(String initalName, boolean initalCompleted, ArrayList<String> initalTags) {
@@ -355,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
                         //create a new intent of the popup class
                         Intent popUp = new Intent(MainActivity.this,Pop.class);
                         ArrayList<String> inputArray = new ArrayList<String>();
-                        for(int i =0; i < tagList.size();i++){
+                        for(int i = 1; i < tagList.size();i++){
                             inputArray.add(tagList.get(i).name);
                         }
                         popUp.putExtra("ButtonName","Done");
@@ -723,7 +723,7 @@ public class MainActivity extends AppCompatActivity {
             //create a new intent of the popup class
             Intent popUp = new Intent(MainActivity.this,Pop.class);
             ArrayList<String> inputArray = new ArrayList<String>();
-            for(int i =0; i < tagList.size();i++){
+            for(int i = 1; i < tagList.size();i++){
                 inputArray.add(tagList.get(i).name);
             }
             popUp.putExtra("ButtonName","Add Task");
@@ -742,7 +742,7 @@ public class MainActivity extends AppCompatActivity {
         if(v==editTaggButton){
             Intent popUp = (new Intent(MainActivity.this,editTagPop.class));
             ArrayList<String> inputArray = new ArrayList<String>();
-            for(int i =0; i < tagList.size();i++){
+            for(int i = 1; i < tagList.size();i++){
                 inputArray.add(tagList.get(i).name);
             }
 
@@ -767,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<String> newTagList = new ArrayList<>();
 
                 //Getting the selected tags in a new list
-                for(int i = 0; i < tagList.size(); i++) {
+                for(int i = 1; i < tagList.size() - 1; i++) {
                     if(booleanList[i]) {
                         newTagList.add(tagList.get(i).name);
                     }
@@ -794,7 +794,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> newTagList = new ArrayList<>();
 
             //Getting the selected tags in a new list
-            for(int i = 0; i < tagList.size(); i++) {
+            for(int i = 1; i < tagList.size() - 1; i++) {
                 if(booleanList[i]) {
                     newTagList.add(tagList.get(i).name);
                 }
@@ -802,9 +802,10 @@ public class MainActivity extends AppCompatActivity {
 
             //Finding the selected tasks for new list
             for (int i = 0; i < taskList.size(); i++) {
-                if (taskList.get(i).selected) {
-                    taskList.get(i).tags = newTagList;
-                    taskList.get(i).selected = false;
+                Task task = taskList.get(i);
+                if (task.selected) {
+                    task.tags = newTagList;
+                    task.selected = false;
                 }
             }
             saveNewTaskList(taskList);
@@ -818,7 +819,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> newTagList = new ArrayList<>();
 
             //Getting the selected tags in a new list
-            for(int i = 0; i < tagList.size(); i++) {
+            for(int i = 1; i < tagList.size() - 1; i++) {
                 if(booleanList[i]) {
                     newTagList.add(tagList.get(i).name);
                 }
