@@ -767,9 +767,9 @@ public class MainActivity extends AppCompatActivity {
                 ArrayList<String> newTagList = new ArrayList<>();
 
                 //Getting the selected tags in a new list
-                for(int i = 1; i < tagList.size() - 1; i++) {
+                for(int i = 0; i < tagList.size() - 1; i++) {
                     if(booleanList[i]) {
-                        newTagList.add(tagList.get(i).name);
+                        newTagList.add(tagList.get(i + 1).name);
                     }
                 }
 
@@ -794,9 +794,9 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> newTagList = new ArrayList<>();
 
             //Getting the selected tags in a new list
-            for(int i = 1; i < tagList.size() - 1; i++) {
+            for(int i = 0; i < tagList.size() - 1; i++) {
                 if(booleanList[i]) {
-                    newTagList.add(tagList.get(i).name);
+                    newTagList.add(tagList.get(i + 1).name);
                 }
             }
 
@@ -819,9 +819,9 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<String> newTagList = new ArrayList<>();
 
             //Getting the selected tags in a new list
-            for(int i = 1; i < tagList.size() - 1; i++) {
+            for(int i = 0; i < tagList.size() - 1; i++) {
                 if(booleanList[i]) {
-                    newTagList.add(tagList.get(i).name);
+                    newTagList.add(tagList.get(i + 1).name);
                 }
             }
 
