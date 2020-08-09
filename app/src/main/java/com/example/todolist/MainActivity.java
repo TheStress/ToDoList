@@ -340,6 +340,7 @@ public class MainActivity extends AppCompatActivity {
                 editButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+
                         //Getting task setup
                         int position = getAdapterPosition();
                         Task task = taskList.get(position);
@@ -353,15 +354,15 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         //create a new intent of the popup class
-                        Intent popUp = new Intent(MainActivity.this,Pop.class);
+                        Intent popUp = new Intent(MainActivity.this, Pop.class);
                         ArrayList<String> inputArray = new ArrayList<String>();
-                        for(int i = 1; i < tagList.size();i++){
+                        for (int i = 1; i < tagList.size(); i++) {
                             inputArray.add(tagList.get(i).name);
                         }
-                        popUp.putExtra("ButtonName","Done");
-                        popUp.putExtra("TaskName",task.name);
-                        popUp.putExtra("InputArray",inputArray);
-                        startActivityForResult(popUp,4);
+                        popUp.putExtra("ButtonName", "Done");
+                        popUp.putExtra("TaskName", task.name);
+                        popUp.putExtra("InputArray", inputArray);
+                        startActivityForResult(popUp, 4);
                     }
                 });
 
@@ -812,29 +813,32 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(requestCode == 4) {
-            String in = data.getStringExtra("GetTheText");
-            boolean[] booleanList = data.getBooleanArrayExtra("BoolList");
 
-            //New list of tags
-            ArrayList<String> newTagList = new ArrayList<>();
+            if(resultCode == RESULT_OK) {
+                String in = data.getStringExtra("GetTheText");
+                boolean[] booleanList = data.getBooleanArrayExtra("BoolList");
 
-            //Getting the selected tags in a new list
-            for(int i = 0; i < tagList.size() - 1; i++) {
-                if(booleanList[i]) {
-                    newTagList.add(tagList.get(i + 1).name);
+                //New list of tags
+                ArrayList<String> newTagList = new ArrayList<>();
+
+                //Getting the selected tags in a new list
+                for (int i = 0; i < tagList.size() - 1; i++) {
+                    if (booleanList[i]) {
+                        newTagList.add(tagList.get(i + 1).name);
+                    }
                 }
-            }
 
-            //Editing task
-            for(int i = 0; i < taskList.size(); i++) {
-                Task task = taskList.get(i);
-                if(task.selected) {
-                    task.name = in;
-                    task.tags = newTagList;
-                    task.selected = false;
+                //Editing task
+                for (int i = 0; i < taskList.size(); i++) {
+                    Task task = taskList.get(i);
+                    if (task.selected) {
+                        task.name = in;
+                        task.tags = newTagList;
+                        task.selected = false;
+                    }
                 }
+                saveNewTaskList(taskList);
             }
-            saveNewTaskList(taskList);
         }
     }
 }
